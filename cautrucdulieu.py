@@ -91,7 +91,7 @@ class LinkedListForHash:
 class HashTable:
     # Khởi tạo một list Python cố định với capacity phần tử, mỗi phần tử là một đối tượng LinkedLishForHash rỗng.
     # Lưu capacity và size
-    def __init__(self, capacity):
+    def __init__(self, capacity= 100):
         self.capacity = capacity
         self.size = 0
         self.table = [LinkedListForHash() for _ in range(capacity)]
