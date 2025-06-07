@@ -1,11 +1,12 @@
 # Import thư viện, cấu trúc dữ liệu, các giải thuật
 from cautrucdulieu import BSTree
+from database import create_connection
 from datetime import datetime, timedelta
-import sqlite3
+from main import connect
 import csv
-from datetime import datetime
+
 # Kết nối cơ sở dữ liệu
-conn = sqlite3.connect("library11.db")
+connected, conn, cursor = connect()
 
 # Hàm gọi lại các chức năng quản lý mượn-trả
 def call_loan_management():
@@ -43,7 +44,7 @@ class LoanManager:
         self.reader_cache = set()  # reader_id set
         self.load_all_data()
 
-    # Hàm xử lý load dữ liệu của đối tượng LoanManager
+    # Hàm xử lý load dữ liệu từ bảng books, readers, loans từ database vào bộ nhớ RAM
     def load_all_data(self):
         self.reader_cache.clear()
         self.book_cache.clear()
@@ -58,10 +59,6 @@ class LoanManager:
         for row in self.cursor.fetchall():
             loan = LoanRecord(*row)
             self.tree.insert(loan.loan_id, loan)
-
-    # Hàm load dữ liệu loan từ databasedatabase
-    def reload_database_loan(self):
-        self.load_all_data()
 
     # Hàm cập nhật loan_id tự động, mỗi lần tạo thì loan_id + 1
     def get_next_id(self):
