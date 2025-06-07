@@ -1,7 +1,6 @@
 # Import thư viện, cấu trúc dữ liệu, các giải thuật
 from cautrucdulieu import BSTree
 from datetime import datetime, timedelta
-from test_condition import can_borrow
 import sqlite3
 import csv
 from datetime import datetime
@@ -74,7 +73,8 @@ class LoanManager:
 
     # Hàm tạo phiếu mượn
     def create_loan(self, reader_id, isbn, duedays):
-        if not self.can_borrow(reader_id, isbn): # Kiểm tra điều kiện trước khi tạo phiếu mượn
+        from test_condition import can_borrow
+        if not can_borrow(self,reader_id, isbn): # Kiểm tra điều kiện trước khi tạo phiếu mượn
             return
         loan_id = self.get_next_id()
         borrow_date = datetime.now()
