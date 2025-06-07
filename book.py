@@ -1,18 +1,16 @@
 # Import cấu trúc dữ liệu, các thư viện và các hàm chức năngnăng
 from cautrucdulieu import HashTable, merge_sort, print_wrapped_table
 from test_condition import test_book
+from main import connect
 import csv
-import sqlite3
+
+# Kết nối đến cơ sở dữ liệu SQLite
+connected, conn, cursor = connect()
 
 # Hàm gọi lại book_management
 def call_book_management():
     from menu import book_management
     book_management()
-
-# Kết nối đến cơ sở dữ liệu SQLite
-conn = sqlite3.connect("library11.db")
-cursor = conn.cursor()
-
 # Hàm khai báo đối tượng Book
 class Book:
     def __init__(self, isbn, title, genre, author, added_quantity, quantity, available_quantity, borrowed_quantity):
@@ -180,7 +178,7 @@ def add_book_terminal():
         borrowed_quantity = 0
     borrowed_quantity = int(borrowed_quantity)
     available_quantity = int(quantity - borrowed_quantity)
-
+    save_book_database(isbn, title, genre, author, added_quantity, quantity, available_quantity, borrowed_quantity)
 # Hàm thêm sách
 def add_book():
     print("Chọn phương thức thêm sách:")
