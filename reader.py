@@ -1,8 +1,9 @@
-# Viết các chức năng: add_reader, delete_reader, search_reader, update_reader, sort_readers
-# reader.py
+# Import thư viện, cấu trúc dữ liệu, chức năng in bảng dữ liệu
 from cautrucdulieu import HashTable, merge_sort, print_wrapped_table
 import sqlite3
 import csv
+
+# Hàm gọi lại danh sách lựa chọn chức năng quản lý người đọc: reader_management()
 def call_reader_management():
     from menu import reader_management
     reader_management()
@@ -12,28 +13,37 @@ cursor = conn.cursor()
 
 # Định nghĩa lớp Reader
 class Reader:
+    # Hàm khởi tạo reader
     def __init__(self, reader_id, name):
         self.reader_id = reader_id
         self.name = name
 
+    # Hàm biểu diễn đối tượng Reader
     def __str__(self):
         return f"{self.reader_id} | {self.name}"
 
+    # Hàm kiểm tra sự tồn tại của reader_id; đảm bảo reader_id là duy nhất
     def __eq__(self, other):
         return isinstance(other, Reader) and self.reader_id == other.reader_id
 
+    # Hàm trả về giá trị băm của thuộc tính
     def __hash__(self):
         return hash(self.reader_id)
 
+# Hàm khởi tạo reader_table theo cấu trúc HashTable
 reader_table = HashTable()
+
+# Khai báo tiêu đề của dữ liệu bảng Reader
 headers = ["MSSV", "Tên bạn đọc"]
 col_widths = [15, 30]
 
+# Hàm chọn lựa các chức năng trong quản lý người đọc
 def reader_choice():
-    ch = input("Nhập lựa chọn của bạn (1-7): ")
+    ch = input("👉 Nhập lựa chọn của bạn (1-8): ")
     while True:
-        if ch not in map(str, range(1, 8)):
-            print("Lựa chọn không hợp lệ.")
+        if ch not in map(str, range(1, 9)):
+            print("❌ Lựa chọn không hợp lệ.")
+            ch = input("👉 Nhập lựa chọn của bạn (1-8): ")
             continue
         if ch == "1":
             add_reader()
@@ -48,55 +58,59 @@ def reader_choice():
         elif ch == "6":
             display_readers()
         elif ch == "7":
+            export_to_csv()
+            call_reader_management()
+        elif ch == "8":
+            print("🏠 Trở về menu chính.")
             from main import main
             main()
             break
+
+# Hàm thêm người đọc từ file csv
 def add_reader_file():
     filename = input("Nhập tên file (VD: readerreader.csv): ").strip()
     try:
         with open(filename, newline='', encoding='utf-8') as csvfile:
             readerss = csv.DictReader(csvfile)
             for row in readerss:
-                reader_id = row["MSSV"]
-                name = row["Name"]
+                reader_id = row["Mã người đọc"]
+                name = row["Họ và têntên"]
                 reader = Reader(reader_id, name)
                 if not reader_table.search(reader_id):
                     reader_table.insert(reader_id, reader)
-                    print(f"Thêm bạn đọc '{reader_id}' thành công.")
+                    print(f"✅ Thêm bạn đọc '{reader_id}' thành công.")
                     cursor.execute("""
         INSERT INTO readers (reader_id, namename)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     """, (reader_id, name))
                     conn.commit()
                 else:
-                    print(f"Bạn đọc có MSSV'{reader_id}' đã tồn tại.")
+                    print(f"❌ Bạn đọc có MSSV'{reader_id}' đã tồn tại.")
     except FileNotFoundError:
-        print(f"Không tìm thấy file '{filename}'")
+        print(f"❌ Không tìm thấy file '{filename}'")
         return 
     except Exception as e:
-        print(f"Lỗi khi thêm sách từ file: {e}")
+        print(f"❌ Lỗi khi thêm sách từ file: {e}")
         return
+
+# Hàm thêm người đọc từ màn hình
 def add_reader_terminal():
     reader_id = input("Nhập MSSV: ").strip()
     name = input("Nhập tên bạn đọc: ").strip()
-    if not reader_id or not name:
-        print("Mã số sinh viên và tên không được để trống.")
-        return
-    if reader_table.search(reader_id):
-        print("Bạn đọc đã tồn tại.")
-        return
     reader = Reader(reader_id, name)
     reader_table.insert(reader_id, reader)
     cursor.execute("INSERT INTO readers (MSSV, name) VALUES (?, ?)", (reader_id, name))
     conn.commit()
-    print("Thêm bạn đọc thành công.")
+    print("✅ Thêm bạn đọc thành công.")
+
+# Hàm gọi để thêm người đọc
 def add_reader():
     print("Chọn phương thức thêm người đọc:")
     print("1. Thêm người đọc từ file")
     print("2. Thêm người đọc từ bàn phím")
     print("3. Trở về menu chính")
     while True:
-        choice = input("Nhập lựa chọn của bạn (1 - 3): ")
+        choice = input("👉 Nhập lựa chọn của bạn (1 - 3): ")
         if choice == "1":
             add_reader_file()
         elif choice == "2":
@@ -105,17 +119,21 @@ def add_reader():
             call_reader_management()
             break
         else:
-            print("Lựa chọn không hợp lệ, vui lòng thử lại.")
+            print("❌ Lựa chọn không hợp lệ, vui lòng thử lại.")
+
+# Hàm xóa người đọc
 def delete_reader():
     reader_id = input("Nhập MSSV cần xóa: ").strip()
     if reader_table.search(reader_id):
         reader_table.delete(reader_id)
         cursor.execute("DELETE FROM readers WHERE MSSV = ?", (reader_id,))
         conn.commit()
-        print("Xóa bạn đọc thành công.")
+        print("✅ Xóa bạn đọc thành công.")
     else:
-        print("Không tìm thấy bạn đọc.")
+        print("❌ Không tìm thấy bạn đọc.")
     call_reader_management()
+
+# Hàm tìm kiếm người đọc theo MSSV / Tên
 def search_reader():
     keyword = input("Nhập từ khóa tìm kiếm theo MSSV hoặc tên: ").strip().lower()
     result = []
@@ -125,13 +143,15 @@ def search_reader():
     if result:
         print_wrapped_table(headers, result, col_widths)
     else:
-        print("Không tìm thấy bạn đọc nào.")
+        print("❌ Không tìm thấy bạn đọc nào.")
     call_reader_management()
+
+# Hàm chỉnh sửa thông tin người đọc
 def update_reader():
     reader_id = input("Nhập MSSV cần cập nhật: ").strip()
     reader = reader_table.search(reader_id)
     if not reader:
-        print("Không tìm thấy bạn đọc.")
+        print("❌ Không tìm thấy bạn đọc.")
         return
     print(f"Thông tin hiện tại: MSSV = {reader.reader_id}, Tên = {reader.name}")
     new_name = input("Nhập tên mới (Enter để giữ nguyên): ").strip()
@@ -139,21 +159,47 @@ def update_reader():
         reader.name = new_name
         cursor.execute("UPDATE readers SET name = ? WHERE MSSV = ?", (new_name, reader_id))
         conn.commit()
-        print("Cập nhật thành công.")
+        print("✅ Cập nhật thành công.")
     else:
-        print("Không có thay đổi.")
+        print("✅ Không có thay đổi.")
     reader_table.insert(reader.reader_id, reader)
     call_reader_management()
+
+# Hàm sắp xếp người đọc theo MSSV/Tên
 def sort_readers():
     readers = reader_table.get_all_values()
+    print("Sắp xếp theo phương thức nào: ")
+    print("1. Sắp xếp theo MSSV")
+    print("2. Sắp xếp theo họ tên")
+    while True:
+        get_choice = input("👉 Nhập lựa chọn của bạn (1 - 2):")
+        if get_choice.strip() == "1":
+            key_func = lambda r: r.reader_id
+            break
+        elif get_choice.strip() == "2":
+            key_func = lambda r: r.name
+            break
+        else:
+            print("❌ Lựa chọn không hợp lệ. Hãy nhập lại.")
+            continue
     reverse = input("Sắp xếp giảm dần? (True/False): ").strip().lower() == "true"
-    sorted_readers = merge_sort(readers, key_func=lambda r: r.reader_id, reverse=reverse)
+    sorted_readers = merge_sort(readers, key_func, reverse=reverse)
     data = [[r.reader_id, r.name] for r in sorted_readers]
     print_wrapped_table(headers, data, col_widths)
     call_reader_management()
+
+# Hàm biểu diễn bảng danh sách người đọc
 def display_readers():
     all_readers = reader_table.get_all_values()
     data = [[r.reader_id, r.name] for r in all_readers]
-    print_wrapped_table(headers, data, col_widths)
+    print_wrapped_table(headers, data, col_widths) 
     call_reader_management()
 
+# Hàm xuất dữ liệu người đọc sang file csv
+def export_to_csv():
+    with open("readers_export.csv", "w", newline="", encoding="utf-8-sig") as f:
+        writer = csv.writer(f)
+        writer.writerow(["Mã người đọc","Họ và tên"])
+        for reader in reader_table.get_all_values():
+            writer.writerow([reader.reader_id, reader.name])
+    print("Xuất CSV", "Đã lưu file reader_export.csv")
