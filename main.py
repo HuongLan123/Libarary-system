@@ -1,37 +1,51 @@
+# Import các hàm giao diện menu và các chức năng quản lý từ các module tương ứng
 from menu import menu, book_management, reader_management, loan_management
+
+# Import các hàm kết nối và nạp lại dữ liệu từ cơ sở dữ liệu
 from database import create_connection, reload_database_book, reload_database_loan, reload_database_reader
+
+# Import lớp và trình quản lý mượn sách
 from loan import LoanRecord, LoanManager
+
 def main():
+    # Tạo kết nối đến cơ sở dữ liệu SQLite
     conn, cursor = create_connection("library11.db")
+
+    # Kiểm tra kết nối thành công hay không
     if not conn:
         print("Không thể kết nối đến cơ sở dữ liệu.")
     else:
+        # Vòng lặp chính của chương trình để xử lý các lựa chọn chức năng
         while True: 
-            menu()
+            menu()  # Hiển thị menu chức năng
             ch = input("Nhập lựa chọn của bạn: ")
+
             if ch == "1":
                 print("Quản lý sách")
-                # Nạp lại dữ liệu sách từ cơ sở dữ liệu
-                reload_database_book()
-                # Gọi hàm quản lý sách từ book.py
-                book_management()
+                reload_database_book()       # Nạp dữ liệu sách từ cơ sở dữ liệu vào bộ nhớ
+                book_management()            # Gọi giao diện quản lý sách
+
             elif ch == "2":
                 print("Quản lý bạn đọc")
-                # Gọi hàm quản lý bạn đọc từ reader.py
-                reload_database_reader()
-                reader_management()
+                reload_database_reader()     # Nạp dữ liệu bạn đọc từ cơ sở dữ liệu vào bộ nhớ
+                reader_management()          # Gọi giao diện quản lý bạn đọc
+
             elif ch == "3":
                 print("Quản lý mượn trả sách")
-                reload_database_loan(LoanManager)
-                # Gọi hàm quản lý mượn trả sách từ loan.py
-                loan_management()
+                reload_database_loan(LoanManager)  # Nạp dữ liệu mượn trả vào bộ nhớ với LoanManager
+                loan_management()                 # Gọi giao diện quản lý mượn trả sách
+
             elif ch == "4":
                 print("Thoát chương trình")
-                break
+                break  # Thoát khỏi vòng lặp và kết thúc chương trình
+
             else:
+                # Xử lý lựa chọn không hợp lệ
                 print("Lựa chọn không hợp lệ, vui lòng thử lại.")
-    # Đóng kết nối khi thoát
+
+    # Đóng kết nối cơ sở dữ liệu khi kết thúc chương trình
     conn.close()
+
+# Gọi hàm main nếu file được chạy trực tiếp
 if __name__ == "__main__":
     main()
-
