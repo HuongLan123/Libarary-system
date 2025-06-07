@@ -1,8 +1,8 @@
 # Import thư viện, cấu trúc dữ liệu, chức năng in bảng dữ liệu
-from cautrucdulieu import HashTable, merge_sort, print_wrapped_table
-import sqlite3
-import csv
 from main import connect
+from cautrucdulieu import HashTable, merge_sort, print_wrapped_table
+from test_condition import test_reader
+import csv
 
 # Kết nối đến cơ sở dữ liệu
 connected, conn, cursor = connect()
@@ -76,17 +76,19 @@ def add_reader_file():
             for row in readerss:
                 reader_id = row["Mã người đọc"]
                 name = row["Họ và tên"]
-                reader = Reader(reader_id, name)
-                if not reader_table.search(reader_id):
-                    reader_table.insert(reader_id, reader)
-                    cursor.execute("""
+                test_reader = test_reader(reader_table, reader_id, name)
+                if test_reader:
+                    reader = Reader(reader_id, name)
+                    if not reader_table.search(reader_id):
+                        reader_table.insert(reader_id, reader)
+                        cursor.execute("""
         INSERT INTO readers (reader_id, namename)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     """, (reader_id, name))
-                    print(f"✅ Thêm bạn đọc '{reader_id}' thành công.")
-                    conn.commit()
-                else:
-                    print(f"❌ Bạn đọc có mã bạn đọc '{reader_id}' đã tồn tại.")
+                        print(f"✅ Thêm bạn đọc '{reader_id}' thành công.")
+                        conn.commit()
+                    else:
+                        print(f"❌ Bạn đọc có mã bạn đọc '{reader_id}' đã tồn tại.")
     except FileNotFoundError:
         print(f"❌ Không tìm thấy file '{filename}'")
         return 
@@ -98,11 +100,12 @@ def add_reader_file():
 def add_reader_terminal():
     reader_id = input("Nhập MSSV làm reader_id: ").strip()
     name = input("Nhập tên bạn đọc: ").strip()
-    reader = Reader(reader_id, name)
-    reader_table.insert(reader_id, reader)
-    cursor.execute("INSERT INTO readers (reader_id, name) VALUES (?, ?)", (reader_id, name))
-    conn.commit()
-    print("✅ Thêm bạn đọc thành công.")
+    if test_reader(reader_table, reader_id, name):
+        reader = Reader(reader_id, name)
+        reader_table.insert(reader_id, reader)
+        cursor.execute("INSERT INTO readers (reader_id, name) VALUES (?, ?)", (reader_id, name))
+        conn.commit()
+        print("✅ Thêm bạn đọc thành công.")
 
 # Hàm gọi để thêm người đọc
 def add_reader():
